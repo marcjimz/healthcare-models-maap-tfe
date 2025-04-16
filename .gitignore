@@ -34,3 +34,6 @@ docs/
 *.iml
 *.ipr
 *.iws
+
+.terraform*
+tfplan
