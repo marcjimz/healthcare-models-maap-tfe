@@ -36,4 +36,4 @@ docs/
 *.iws
 
 .terraform*
-tfplan
+tfplan*

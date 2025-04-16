@@ -26,7 +26,7 @@ terraform init
 terraform plan \
   -var="subscription_id=28d2df62-e322-4b25-b581-c43b94bd2607" \
   -var="resource_group_location=eastus" \
-  -var="aihubname=demo-ai-foundry" \
+  -var="aihubname=demo-model" \
   -out=tfplan
 ```  
 4. **Apply**  
