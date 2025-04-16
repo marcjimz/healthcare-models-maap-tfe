@@ -1,0 +1,30 @@
+# Ignore local Terraform directories
+**/.terraform/*
+
+# Ignore Terraform state files
+*.tfstate
+*.tfstate.backup
+
+# Ignore plan output files
+*.tfplan
+
+# Ignore override files (can be used for local tweaks)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore crash logs
+crash.log
+
+# Ignore CLI config
+.terraformrc
+terraform.rc
+
+# Ignore variable definitions that may contain secrets
+*.tfvars
+auto.tfvars
+
+# (Optional) If you generate documentation or diagrams
+docs/
+*.svg
