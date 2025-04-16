@@ -47,9 +47,9 @@ resource "azapi_resource" "mii_endpoint" {
     properties = {
       authMode    = "key"         # use API keys for auth
       description = "MedImageInsight endpoint"
-    }
-    traffic = {
-      "mii-deploy-v9" = 100
+      traffic = {
+        "mii-deploy-v9" = 100
+      }
     }
   }
 }
