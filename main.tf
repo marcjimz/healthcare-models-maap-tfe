@@ -27,7 +27,7 @@ resource "azurerm_ai_foundry_project" "project" {
   }
 }
 
-resource "azapi_resource" "mii_endpoint" {
+resource "azapi_resource" "mii_endpoint_create" {
   type      = "Microsoft.MachineLearningServices/workspaces/onlineEndpoints@2024-04-01-preview"
   name      = "${var.aihubname}-mii-ep"
   parent_id = azurerm_ai_foundry_project.project.id
@@ -37,27 +37,20 @@ resource "azapi_resource" "mii_endpoint" {
     type = "SystemAssigned"
   }
 
-  tags = {
-    environment = "dev"
-    project     = "MedImageInsight"
-  }
-
   body = {
     kind       = "online"
     properties = {
-      authMode    = "key"         # use API keys for auth
+      authMode    = "key"
       description = "MedImageInsight endpoint"
-      traffic = {
-        "mii-deploy-v9" = 100
-      }
     }
   }
 }
 
-resource "azapi_resource" "mip_deployment" {
-  type      = "Microsoft.MachineLearningServices/workspaces/onlineEndpoints/deployments@2024-04-01-preview"
+# 2) create the deployment
+resource "azapi_resource" "mii_deployment" {
+  type      = "Microsoft.MachineLearningServices/workspaces/onlineEndpoints/deployments@2024-01-01-preview"
   name      = "mii-deploy-v9"
-  parent_id = azapi_resource.mii_endpoint.id
+  parent_id = azapi_resource.mii_endpoint_create.id
   location  = var.resource_group_location
 
   tags = {
@@ -86,6 +79,23 @@ resource "azapi_resource" "mip_deployment" {
       name     = "Standard_NC24ads_A100_v4"
       capacity = 1
       tier     = "Standard"
+    }
+  }
+}
+
+# 3) patch traffic
+resource "azapi_update_resource" "mii_endpoint_traffic" {
+  type      = "Microsoft.MachineLearningServices/workspaces/onlineEndpoints@2024-04-01-preview"
+  name      = azapi_resource.mii_endpoint_create.name
+  parent_id = azurerm_ai_foundry_project.project.id
+
+  depends_on = [azapi_resource.mii_deployment]
+
+  body = {
+    properties = {
+      traffic = {
+        (azapi_resource.mii_deployment.name) = 100
+      }
     }
   }
 }
