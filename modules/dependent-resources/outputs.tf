@@ -2,12 +2,8 @@ output "suffix" {
   value = random_string.suffix.result
 }
 
-output "resource_group_name" {
-  value = azurerm_resource_group.rg.name
-}
-
 output "ai_services_location" {
-  value = azurerm_ai_services.ais.location
+  value = azurerm_cognitive_account.cogs.location
 }
 
 output "key_vault_id" {
@@ -19,5 +15,5 @@ output "storage_account_id" {
 }
 
 output "ai_services_id" {
-  value = azurerm_ai_services.ais.id
+  value = azurerm_cognitive_account.cogs.id
 }

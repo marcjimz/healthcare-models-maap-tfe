@@ -1,14 +1,14 @@
-variable "subscription_id" {
+variable "resource_group_name" {
   type        = string
-  description = "Your Azure Subscription ID"
+  description = "RG into which to deploy all dependent resources"
 }
 
-variable "location" {
+variable "vnet_id" {
   type        = string
-  description = "Region for RG, KV, Storage, AI Services"
+  description = "ID of the VNet to lock down these services into"
 }
 
-variable "aihubname" {
+variable "subnet_id" {
   type        = string
-  description = "Base name for all AI Foundry resources"
+  description = "ID of the Subnet to lock down these services into"
 }

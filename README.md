@@ -25,8 +25,11 @@ terraform init
 ```bash
 terraform plan \
   -var="subscription_id=28d2df62-e322-4b25-b581-c43b94bd2607" \
-  -var="resource_group_location=eastus" \
-  -var="aihubname=demo-model" \
+  -var="resource_group_location=westus" \
+  -var="aihubname=ihc-tfe-deploy" \
+  -var="vm_name=windows-bastion" \
+  -var="admin_username=azureuser" \
+  -var="admin_password=YourPassword\!" \
   -out=tfplan
 ```  
 4. **Apply**  
