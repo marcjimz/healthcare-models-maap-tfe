@@ -26,6 +26,13 @@ resource "azurerm_subnet" "core_subnet" {
   resource_group_name  = data.azurerm_resource_group.rg.name
   virtual_network_name = azurerm_virtual_network.core_vnet.name
   address_prefixes     = ["10.0.0.0/26"]
+
+  service_endpoints = [
+    "Microsoft.KeyVault",
+    "Microsoft.Storage",
+    "Microsoft.CognitiveServices",
+    "Microsoft.ContainerRegistry",
+  ]
 }
 
 # ─── LOG ANALYTICS (ARM) ─────────────────────────────────────────────────────────
@@ -57,20 +64,33 @@ resource "azurerm_application_insights" "appi" {
   workspace_id           = azapi_resource.law_arm.id
 }
 
-# ─── KEY VAULT ─────────────────────────────────────────────────────────────────────
-resource "azurerm_key_vault" "kv" {
-  name                        = "kv-${random_string.suffix.result}"
-  location                    = data.azurerm_resource_group.rg.location
-  resource_group_name         = data.azurerm_resource_group.rg.name
-  tenant_id                   = data.azurerm_client_config.current.tenant_id
-  sku_name                    = "standard"
-  purge_protection_enabled    = true
+resource "azapi_resource" "kv" {
+  type      = "Microsoft.KeyVault/vaults@2023-07-01"
+  name      = "kv-${random_string.suffix.result}"
+  parent_id = data.azurerm_resource_group.rg.id
+  location  = data.azurerm_resource_group.rg.location
 
-  network_acls {
-    default_action             = "Deny"
-    bypass                     = "AzureServices"
-    virtual_network_subnet_ids = [azurerm_subnet.core_subnet.id]
-  }
+  body = jsonencode({
+    properties = {
+      createMode                   = "default"
+      enabledForDeployment         = false
+      enabledForDiskEncryption     = false
+      enabledForTemplateDeployment = false
+      enableSoftDelete             = true
+      enablePurgeProtection        = true
+      enableRbacAuthorization      = true
+      networkAcls = {
+        bypass        = "AzureServices"
+        defaultAction = "Deny"
+      }
+      sku = {
+        family = "A"
+        name   = "standard"
+      }
+      softDeleteRetentionInDays = 7
+      tenantId                  = data.azurerm_client_config.current.tenant_id
+    }
+  })
 }
 
 resource "azurerm_private_endpoint" "kv_pe" {
@@ -81,7 +101,7 @@ resource "azurerm_private_endpoint" "kv_pe" {
 
   private_service_connection {
     name                           = "kv-psc"
-    private_connection_resource_id = azurerm_key_vault.kv.id
+    private_connection_resource_id = azapi_resource.kv.id
     subresource_names              = ["vault"]
     is_manual_connection           = false
   }
@@ -101,7 +121,7 @@ resource "azurerm_private_dns_zone_virtual_network_link" "kv_dns_link" {
 }
 
 resource "azurerm_private_dns_a_record" "kv_dns_a" {
-  name                = azurerm_key_vault.kv.name
+  name                = azapi_resource.kv.name
   zone_name           = azurerm_private_dns_zone.kv_dns.name
   resource_group_name = data.azurerm_resource_group.rg.name
   ttl                 = 300
@@ -118,6 +138,7 @@ resource "azurerm_storage_account" "sa" {
 
   network_rules {
     default_action             = "Deny"
+    bypass                     = ["AzureServices"]
     virtual_network_subnet_ids = [azurerm_subnet.core_subnet.id]
   }
 }
@@ -258,7 +279,6 @@ resource "azurerm_cognitive_account" "cogs" {
 
   network_acls {
     default_action = "Deny"
-    bypass         = "AzureServices"
 
     virtual_network_rules {
       subnet_id                           = azurerm_subnet.core_subnet.id
